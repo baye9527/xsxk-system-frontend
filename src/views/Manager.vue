@@ -84,6 +84,11 @@
             <span>选课信息</span>
           </el-menu-item>
           
+          <el-menu-item index="/grade" v-if="data.user.role === 'TEACHER'" class="menu-item">
+            <el-icon><Document /></el-icon>
+            <span>成绩管理</span>
+          </el-menu-item>
+          
           <div class="menu-divider"></div>
           
           <el-menu-item index="/admin" v-if="data.user.role === 'ADMIN'" class="menu-item">
@@ -116,7 +121,7 @@
 import { reactive } from "vue";
 import router from "@/router";
 import {ElMessage} from "element-plus";
-import { ArrowDown } from '@element-plus/icons-vue';
+import { ArrowDown, Document } from '@element-plus/icons-vue';
 
 const data = reactive({
   user: JSON.parse(localStorage.getItem('system-user') || '{}')
