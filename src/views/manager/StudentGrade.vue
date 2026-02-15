@@ -108,19 +108,23 @@
           </template>
         </el-table-column>
         <el-table-column prop="semester" label="学期" width="120" />
-        <el-table-column prop="credit" label="学分" width="80" />
+        <el-table-column prop="credit" label="学分" width="80">
+          <template #default="scope">
+            {{ getCredit(scope.row.courseName) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="courseType" label="课程类型" width="100">
           <template #default="scope">
-            <el-tag :type="getCourseTypeTag(scope.row.courseType)">
-              {{ scope.row.courseType }}
+            <el-tag :type="getCourseType(scope.row.courseName) === '必修' ? 'danger' : 'warning'">
+              {{ getCourseType(scope.row.courseName) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="scope">
-            <el-tag :type="getStatusTag(scope.row.status)">
-              {{ scope.row.status }}
-            </el-tag>
+            <span :class="getScoreStatusClass(scope.row.score)">
+              {{ getScoreStatus(scope.row.score) }}
+            </span>
           </template>
         </el-table-column>
       </el-table>
@@ -261,26 +265,56 @@ const getScoreClass = (score) => {
   return 'score-fail'
 }
 
-// 获取课程类型标签样式
-const getCourseTypeTag = (type) => {
-  const tagMap = {
-    '必修': 'danger',
-    '选修': 'warning',
-    '实践': 'success',
-    '公选': 'info'
-  }
-  return tagMap[type] || 'info'
+// 获取课程类型（根据课程名称判断）
+const getCourseType = (courseName) => {
+  const requiredCourses = [
+    'Python基础',
+    'Java基础', 
+    'C语言',
+    '数据结构',
+    '高等数学',
+    '大学英语',
+    '操作系统',
+    '计算机网络',
+    '软件工程',
+    '计算机视觉',
+    '机器学习',
+    '深度学习',
+    '人工智能导论'
+  ]
+  
+  return requiredCourses.includes(courseName) ? '必修' : '选修'
 }
 
-// 获取状态标签样式
-const getStatusTag = (status) => {
-  const tagMap = {
-    '已通过': 'success',
-    '未通过': 'danger',
-    '待考试': 'warning',
-    '待录入': 'info'
-  }
-  return tagMap[status] || 'info'
+// 获取学分（根据课程名称判断）
+const getCredit = (courseName) => {
+  const requiredCourses = [
+    'Python基础',
+    'Java基础', 
+    'C语言',
+    '数据结构',
+    '高等数学',
+    '大学英语',
+    '操作系统',
+    '计算机网络',
+    '软件工程',
+    '计算机视觉',
+    '机器学习',
+    '深度学习',
+    '人工智能导论'
+  ]
+  
+  return requiredCourses.includes(courseName) ? 2 : 1
+}
+
+// 获取成绩状态（根据分数判断）
+const getScoreStatus = (score) => {
+  return score >= 60 ? '及格' : '不及格'
+}
+
+// 获取成绩状态样式
+const getScoreStatusClass = (score) => {
+  return score >= 60 ? 'status-pass' : 'status-fail'
 }
 
 onMounted(() => {
@@ -439,6 +473,17 @@ onMounted(() => {
 }
 
 .score-fail {
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+/* 成绩状态样式 */
+.status-pass {
+  color: #67c23a;
+  font-weight: bold;
+}
+
+.status-fail {
   color: #f56c6c;
   font-weight: bold;
 }
