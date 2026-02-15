@@ -111,7 +111,7 @@
           />
         </el-form-item>
         <el-form-item label="学期" prop="semester">
-          <el-select v-model="data.form.semester" placeholder="请选择学期">
+          <el-select v-model="data.form.semesterDisplay" placeholder="请选择学期" @change="handleSemesterChange">
             <el-option label="第一学期" value="第一学期" />
             <el-option label="第二学期" value="第二学期" />
           </el-select>
@@ -142,14 +142,17 @@ const data = reactive({
   courseList: [],
   tableData: [],
   dialogVisible: false,
+  currentAcademicYear: '2024-2025', // 当前学年
   form: {
+    choiceId: null, // 选课记录ID
     studentId: null,
     studentName: '',
     studentNo: '',
     courseId: null,
     usualScore: null,
     examScore: null,
-    semester: ''
+    semesterDisplay: '', // 显示用的学期（第一学期/第二学期）
+    semester: '' // 提交给后端的完整学期（2024-2025-1/2024-2025-2）
   },
   rules: {
     usualScore: [
@@ -193,16 +196,36 @@ const load = () => {
   })
 }
 
+// 处理学期选择变化
+const handleSemesterChange = (value) => {
+  if (value === '第一学期') {
+    data.form.semester = `${data.currentAcademicYear}-1`
+  } else if (value === '第二学期') {
+    data.form.semester = `${data.currentAcademicYear}-2`
+  }
+}
+
+// 计算总成绩
+const calculateTotalScore = () => {
+  if (data.form.usualScore !== null && data.form.examScore !== null) {
+    // 总成绩 = 平时成绩 + 考试成绩
+    return data.form.usualScore + data.form.examScore
+  }
+  return null
+}
+
 // 打开录入成绩弹窗
 const handleAddGrade = (row) => {
   data.form = {
+    choiceId: row.choiceId, // 使用choiceId作为标识
     studentId: row.studentId,
     studentName: row.studentName,
     studentNo: row.studentNo,
     courseId: data.courseId,
     usualScore: row.usualScore || null,
     examScore: row.examScore || null,
-    semester: row.semester || ''
+    semesterDisplay: '', // 重置显示值
+    semester: '' // 重置提交值
   }
   data.dialogVisible = true
 }
@@ -211,7 +234,17 @@ const handleAddGrade = (row) => {
 const submit = () => {
   formRef.value.validate((valid) => {
     if (valid) {
-      request.post('/grade/add', data.form).then(res => {
+      // 自动计算总成绩
+      const totalScore = calculateTotalScore()
+      const submitData = {
+        choiceId: data.form.studentId, // 使用choiceId作为标识
+        usualScore: data.form.usualScore,
+        examScore: data.form.examScore,
+        totalScore: totalScore,
+        semester: data.form.semester
+      }
+      
+      request.post('/score/batchUpdate', [submitData]).then(res => {
         if (res.code === '200') {
           ElMessage.success('成绩录入成功')
           data.dialogVisible = false
