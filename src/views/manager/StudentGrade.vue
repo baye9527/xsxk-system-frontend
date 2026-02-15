@@ -175,47 +175,60 @@ const data = reactive({
 
 // 加载成绩列表
 const loadGrades = () => {
-  // TODO: 对接真实接口
-  // request.get(`/score/student/${userStore.studentId}`, {
-  //   params: {
-  //     semester: data.semester,
-  //     pageNum: data.pageNum,
-  //     pageSize: data.pageSize
-  //   }
-  // }).then(res => {
-  //   if (res.code === '200') {
-  //     data.tableData = res.data?.records || []
-  //     data.total = res.data?.total || 0
-  //     loadStats() // 加载统计数据
-  //   } else {
-  //     ElMessage.error(res.msg || '获取成绩列表失败')
-  //   }
-  // })
-  
-  // 临时占位 - 模拟数据（后续删除）
-  console.log('加载成绩列表，学生ID:', userStore.studentId, '学期:', data.semester)
+  request.get('/score/myScoresSimple', {
+    params: {
+      studentId: userStore.studentId,
+      semester: data.semester,
+      pageNum: data.pageNum,
+      pageSize: data.pageSize
+    }
+  }).then(res => {
+    if (res.code === '200') {
+      data.tableData = res.data?.list || []
+      data.total = res.data?.total || 0
+      loadStats() // 加载统计数据
+    } else {
+      ElMessage.error(res.msg || '获取成绩列表失败')
+    }
+  })
 }
 
 // 加载统计数据
 const loadStats = () => {
-  // TODO: 对接真实接口
-  // request.get(`/score/student/${userStore.studentId}/stats`, {
-  //   params: {
-  //     semester: data.semester
-  //   }
-  // }).then(res => {
-  //   if (res.code === '200') {
-  //     data.stats = res.data || {
-  //       totalCourses: 0,
-  //       averageScore: 0,
-  //       maxScore: 0,
-  //       minScore: 0
-  //     }
-  //   }
-  // })
+  // 从成绩列表中计算统计数据
+  if (data.tableData.length === 0) {
+    data.stats = {
+      totalCourses: 0,
+      averageScore: 0,
+      maxScore: 0,
+      minScore: 0
+    }
+    return
+  }
   
-  // 临时占位
-  console.log('加载统计数据')
+  const scores = data.tableData.map(item => item.score).filter(score => score !== null && score !== undefined)
+  
+  if (scores.length === 0) {
+    data.stats = {
+      totalCourses: data.tableData.length,
+      averageScore: 0,
+      maxScore: 0,
+      minScore: 0
+    }
+    return
+  }
+  
+  const totalScore = scores.reduce((sum, score) => sum + score, 0)
+  const averageScore = (totalScore / scores.length).toFixed(1)
+  const maxScore = Math.max(...scores)
+  const minScore = Math.min(...scores)
+  
+  data.stats = {
+    totalCourses: data.tableData.length,
+    averageScore: parseFloat(averageScore),
+    maxScore: maxScore,
+    minScore: minScore
+  }
 }
 
 // 重置筛选条件
