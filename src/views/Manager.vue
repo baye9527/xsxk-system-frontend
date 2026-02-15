@@ -118,27 +118,36 @@
 </template>
 
 <script setup>
-import { reactive } from "vue";
+import { reactive, computed } from "vue";
 import router from "@/router";
 import {ElMessage} from "element-plus";
 import { ArrowDown, Document } from '@element-plus/icons-vue';
+import { useUserStore } from '@/stores/user';
 
+const userStore = useUserStore()
+
+// 使用计算属性从userStore获取用户信息
 const data = reactive({
-  user: JSON.parse(localStorage.getItem('system-user') || '{}')
+  user: computed(() => ({
+    id: userStore.userId,
+    role: userStore.role,
+    name: userStore.name,
+    avatar: userStore.avatar
+  }))
 })
 
-if (!data.user?.id) {
+if (!userStore.isAuthenticated) {
   ElMessage.error('请登录！')
   router.push('/login')
 }
 
 const updateUser = () => {
-  data.user = JSON.parse(localStorage.getItem('system-user') || '{}')
+  // 用户信息更新时，userStore会自动同步
 }
 
 const logout = () => {
   ElMessage.success('退出成功')
-  localStorage.removeItem('system-user')
+  userStore.clearUser()
   router.push('/login')
 }
 </script>

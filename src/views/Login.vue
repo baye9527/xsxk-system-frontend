@@ -59,6 +59,7 @@
   import request from "@/utils/request";
   import {ElMessage} from "element-plus";
   import router from "@/router";
+  import { useUserStore } from "@/stores/user";
 
   const data = reactive({
     form: {},
@@ -76,6 +77,7 @@
   })
 
   const formRef = ref()
+  const userStore = useUserStore()
 
   // 点击登录按钮的时候会触发这个方法
   const login = () => {
@@ -87,8 +89,11 @@
             // 只有当返回的数据不为空时才算登录成功
             if (res.data) {
               ElMessage.success("登录成功")
+              
+              // 使用Pinia用户仓库保存用户信息
+              userStore.setUser(res.data)
+              
               router.push('/')
-              localStorage.setItem('system-user', JSON.stringify(res.data))
             } else {
               ElMessage.error("用户名、密码或身份类型错误")
             }

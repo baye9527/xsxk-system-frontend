@@ -132,8 +132,10 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, List, Document } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import { useUserStore } from '@/stores/user'
 
 const formRef = ref()
+const userStore = useUserStore()
 
 const data = reactive({
   courseId: null,
@@ -164,7 +166,8 @@ const data = reactive({
 
 // 加载课程列表
 const loadCourses = () => {
-  request.get('/course/list').then(res => {
+  // 使用userStore中的teacherId获取教师课程列表
+  request.get(`/course/teacher/${userStore.teacherId}`).then(res => {
     if (res.code === '200') {
       data.courseList = res.data
     } else {
