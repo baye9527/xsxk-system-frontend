@@ -237,7 +237,7 @@ const submit = () => {
       // 自动计算总成绩
       const totalScore = calculateTotalScore()
       const submitData = {
-        choiceId: data.form.studentId, // 使用choiceId作为标识
+        choiceId: data.form.choiceId, // 修正：使用choiceId作为标识
         usualScore: data.form.usualScore,
         examScore: data.form.examScore,
         totalScore: totalScore,

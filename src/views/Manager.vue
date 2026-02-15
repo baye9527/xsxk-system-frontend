@@ -89,6 +89,11 @@
             <span>成绩管理</span>
           </el-menu-item>
           
+          <el-menu-item index="/studentGrade" v-if="data.user.role === 'STUDENT'" class="menu-item">
+            <el-icon><TrendCharts /></el-icon>
+            <span>成绩查询</span>
+          </el-menu-item>
+          
           <div class="menu-divider"></div>
           
           <el-menu-item index="/admin" v-if="data.user.role === 'ADMIN'" class="menu-item">
@@ -121,7 +126,7 @@
 import { reactive, computed } from "vue";
 import router from "@/router";
 import {ElMessage} from "element-plus";
-import { ArrowDown, Document } from '@element-plus/icons-vue';
+import { ArrowDown, Document, TrendCharts } from '@element-plus/icons-vue';
 import { useUserStore } from '@/stores/user';
 
 const userStore = useUserStore()
