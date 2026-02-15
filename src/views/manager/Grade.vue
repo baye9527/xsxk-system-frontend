@@ -166,10 +166,11 @@ const data = reactive({
 
 // 加载课程列表
 const loadCourses = () => {
-  // 使用userStore中的teacherId获取教师课程列表
-  request.get(`/course/teacher/${userStore.teacherId}`).then(res => {
+  // 使用现有的分页接口获取教师课程列表
+  request.get(`/course/selectPage?teacherId=${userStore.teacherId}&pageNum=1&pageSize=100`).then(res => {
     if (res.code === '200') {
-      data.courseList = res.data
+      // 根据实际接口返回，课程列表在 data.list 中
+      data.courseList = res.data?.list || []
     } else {
       ElMessage.error(res.msg || '获取课程列表失败')
     }
@@ -183,7 +184,7 @@ const load = () => {
     return
   }
   
-  request.get(`/choice/students/${data.courseId}`).then(res => {
+  request.get(`/choice/selectStudentsByCourseId/${data.courseId}`).then(res => {
     if (res.code === '200') {
       data.tableData = res.data || []
     } else {
