@@ -53,7 +53,7 @@
         empty-text="暂无数据"
       >
         <el-table-column prop="studentNo" label="学号" width="120" />
-        <el-table-column prop="name" label="姓名" width="100" />
+        <el-table-column prop="studentName" label="姓名" width="100" />
         <el-table-column prop="collegeName" label="学院" width="150" />
         <el-table-column prop="specialityName" label="专业" width="150" />
         <el-table-column prop="className" label="班级" width="120" />
@@ -196,8 +196,8 @@ const load = () => {
 // 打开录入成绩弹窗
 const handleAddGrade = (row) => {
   data.form = {
-    studentId: row.id,
-    studentName: row.name,
+    studentId: row.studentId,
+    studentName: row.studentName,
     studentNo: row.studentNo,
     courseId: data.courseId,
     usualScore: row.usualScore || null,
