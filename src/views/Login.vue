@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-title">
-        <span class="system-name">学生选课管理系统</span>
+        <span class="system-name">高校选课系统与成绩查询系统</span>
       </div>
       <el-form :model="data.form" ref="formRef" :rules="data.rules" class="login-form">
         <el-form-item prop="username">
