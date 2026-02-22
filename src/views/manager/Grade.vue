@@ -37,6 +37,12 @@
           <el-icon><List /></el-icon>
           <span>学生列表</span>
         </div>
+        <div class="table-buttons">
+          <el-button type="success" @click="handleImportExcel">
+            <el-icon><Upload /></el-icon>
+            <span>Excel导入成绩</span>
+          </el-button>
+        </div>
       </div>
       
       <el-table 
@@ -124,17 +130,94 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- Excel导入弹窗 -->
+    <el-dialog 
+      v-model="data.importDialogVisible" 
+      title="Excel导入成绩" 
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form 
+        :model="data.importForm" 
+        :rules="data.importRules" 
+        ref="importFormRef" 
+        label-width="100px"
+      >
+        <el-form-item label="选择课程" prop="courseId">
+          <el-select 
+            v-model="data.importForm.courseId" 
+            placeholder="请选择课程" 
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in data.courseList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="选择学期" prop="semesterDisplay">
+          <el-select 
+            v-model="data.importForm.semesterDisplay" 
+            placeholder="请选择学期" 
+            @change="handleImportSemesterChange"
+            style="width: 100%"
+          >
+            <el-option label="第一学期" value="第一学期" />
+            <el-option label="第二学期" value="第二学期" />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="Excel文件" prop="file">
+          <input 
+            ref="fileInput"
+            type="file"
+            accept=".xls,.xlsx"
+            @change="handleFileInputChange"
+            style="display: none"
+          />
+          <el-button type="primary" @click="$refs.fileInput.click()">
+            选择文件
+          </el-button>
+          <div v-if="data.importForm.file" style="margin-top: 10px; color: #606266;">
+            已选择文件: {{ data.importForm.file.name }}
+            <el-button type="text" @click="handleFileRemove" style="margin-left: 10px;">
+              移除
+            </el-button>
+          </div>
+          <template #tip>
+            <div class="el-upload__tip">
+              只能上传 xls/xlsx 文件，且不超过 10MB
+            </div>
+          </template>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="data.importDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitImport" :loading="data.importLoading">
+            确认导入
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search, List, Document } from '@element-plus/icons-vue'
+import { Search, List, Document, Upload } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 const formRef = ref()
+const importFormRef = ref()
+const uploadRef = ref()
 const userStore = useUserStore()
 
 const data = reactive({
@@ -142,6 +225,8 @@ const data = reactive({
   courseList: [],
   tableData: [],
   dialogVisible: false,
+  importDialogVisible: false,
+  importLoading: false,
   currentAcademicYear: '2024-2025', // 当前学年
   form: {
     choiceId: null, // 选课记录ID
@@ -154,6 +239,12 @@ const data = reactive({
     semesterDisplay: '', // 显示用的学期（第一学期/第二学期）
     semester: '' // 提交给后端的完整学期（2024-2025-1/2024-2025-2）
   },
+  importForm: {
+    courseId: null,
+    semesterDisplay: '',
+    semester: '',
+    file: null
+  },
   rules: {
     usualScore: [
       { required: true, message: '请输入平时成绩', trigger: 'blur' }
@@ -163,6 +254,17 @@ const data = reactive({
     ],
     semester: [
       { required: true, message: '请选择学期', trigger: 'change' }
+    ]
+  },
+  importRules: {
+    courseId: [
+      { required: true, message: '请选择课程', trigger: 'change' }
+    ],
+    semesterDisplay: [
+      { required: true, message: '请选择学期', trigger: 'change' }
+    ],
+    file: [
+      { required: true, message: '请选择Excel文件', trigger: 'change' }
     ]
   }
 })
@@ -212,6 +314,111 @@ const calculateTotalScore = () => {
     return data.form.usualScore + data.form.examScore
   }
   return null
+}
+
+// 打开Excel导入弹窗
+const handleImportExcel = () => {
+  data.importForm = {
+    courseId: data.courseId, // 默认选择当前课程
+    semesterDisplay: '',
+    semester: '',
+    file: null
+  }
+  data.importDialogVisible = true
+}
+
+// 处理导入学期选择变化
+const handleImportSemesterChange = (value) => {
+  if (value === '第一学期') {
+    data.importForm.semester = `${data.currentAcademicYear}-1`
+  } else if (value === '第二学期') {
+    data.importForm.semester = `${data.currentAcademicYear}-2`
+  }
+}
+
+// 处理文件选择
+const handleFileInputChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    // 检查文件类型
+    const validTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(xls|xlsx)$/i)) {
+      ElMessage.error('请选择Excel文件（.xls或.xlsx格式）')
+      event.target.value = ''
+      return
+    }
+    
+    // 检查文件大小（10MB）
+    if (file.size > 10 * 1024 * 1024) {
+      ElMessage.error('文件大小不能超过10MB')
+      event.target.value = ''
+      return
+    }
+    
+    data.importForm.file = file
+  } else {
+    data.importForm.file = null
+  }
+}
+
+// 处理文件移除
+const handleFileRemove = () => {
+  data.importForm.file = null
+  if (document.querySelector('input[type="file"]')) {
+    document.querySelector('input[type="file"]').value = ''
+  }
+}
+
+// 提交Excel导入
+const submitImport = () => {
+  importFormRef.value.validate((valid) => {
+    if (valid) {
+      if (!data.importForm.file) {
+        ElMessage.error('请选择Excel文件')
+        return
+      }
+      
+      data.importLoading = true
+      
+      // 创建FormData对象
+      const formData = new FormData()
+      formData.append('file', data.importForm.file)
+      formData.append('courseId', data.importForm.courseId)
+      formData.append('semester', data.importForm.semester)
+      
+      // 使用原生XMLHttpRequest确保正确的multipart格式
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', 'http://localhost:9091/score/import', true)
+      
+      xhr.onload = function() {
+        data.importLoading = false
+        if (xhr.status === 200) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            if (response.code === '200') {
+              ElMessage.success('导入成功')
+              data.importDialogVisible = false
+              load() // 刷新学生成绩列表
+            } else {
+              ElMessage.error(response.msg || '导入失败')
+            }
+          } catch (e) {
+            ElMessage.error('导入失败，响应格式错误')
+          }
+        } else {
+          ElMessage.error('导入失败，服务器错误')
+        }
+      }
+      
+      xhr.onerror = function() {
+        data.importLoading = false
+        ElMessage.error('导入失败，网络错误')
+      }
+      
+      // 发送FormData，让浏览器自动设置Content-Type
+      xhr.send(formData)
+    }
+  })
 }
 
 // 打开录入成绩弹窗
@@ -331,9 +538,20 @@ onMounted(() => {
   color: #409EFF;
 }
 
+.table-buttons {
+  display: flex;
+  gap: 10px;
+}
+
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.el-upload__tip {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 7px;
 }
 </style>
