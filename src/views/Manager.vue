@@ -45,14 +45,14 @@
 
     <div style="display: flex">
       <!-- 侧边导航栏 -->
-      <div style="width: 220px; background-color: #263238; min-height: calc(100vh - 60px); box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
+      <div style="width: 220px; background-color: #f8f9fa; min-height: calc(100vh - 60px); box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
         <el-menu
             router
             style="border: none; background-color: transparent;"
             :default-active="router.currentRoute.value.path"
             class="custom-menu"
-            text-color="#b0bec5"
-            active-text-color="#ffffff"
+            text-color="#2c3e50"
+            active-text-color="#2f6fb3"
         >
           <el-menu-item index="/home" class="menu-item">
             <el-icon><HomeFilled /></el-icon>
@@ -209,15 +209,16 @@ const logout = () => {
 }
 
 .el-menu-item.is-active {
-  background-color: #1e88e5 !important;
-  color: white !important;
+  background-color: #e3f2fd !important;
+  color: #2f6fb3 !important;
   font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(47, 111, 179, 0.2);
+  border-left: 3px solid #2f6fb3;
 }
 
 .el-menu-item:hover {
-  background-color: rgba(30, 136, 229, 0.15) !important;
-  color: white !important;
+  background-color: #f5f5f5 !important;
+  color: #2f6fb3 !important;
 }
 
 :deep(.el-menu-item) {
