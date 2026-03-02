@@ -173,12 +173,26 @@ const getChineseDate = () => {
 // 获取专业问候语
 const getProfessionalGreeting = () => {
   const hour = new Date().getHours();
-  if (hour < 9) return '早上好，祝您今天工作顺利';
-  if (hour < 12) return '上午好，祝您今天工作顺利';
-  if (hour < 14) return '中午好，注意休息';
-  if (hour < 17) return '下午好，祝您今天工作顺利';
-  if (hour < 19) return '傍晚好，辛苦了';
-  if (hour < 22) return '晚上好，注意休息';
+  const isStudent = data.user.role === 'STUDENT';
+  
+  if (hour < 9) {
+    return isStudent ? '早上好，祝您今天学习顺利' : '早上好，祝您今天工作顺利';
+  }
+  if (hour < 12) {
+    return isStudent ? '上午好，祝您今天学习顺利' : '上午好，祝您今天工作顺利';
+  }
+  if (hour < 14) {
+    return '中午好，注意休息';
+  }
+  if (hour < 17) {
+    return isStudent ? '下午好，祝您今天学习愉快' : '下午好，祝您今天工作顺利';
+  }
+  if (hour < 19) {
+    return isStudent ? '傍晚好，今天辛苦了' : '傍晚好，辛苦了';
+  }
+  if (hour < 22) {
+    return isStudent ? '晚上好，注意休息' : '晚上好，注意休息';
+  }
   return '夜深了，注意休息';
 };
 
