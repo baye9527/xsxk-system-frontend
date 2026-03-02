@@ -1,13 +1,41 @@
 <template>
   <div class="home-container">
-    <!-- 欢迎卡片 -->
-    <div class="welcome-card">
-      <div class="welcome-avatar">
-        <img :src="data.user.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" alt="头像">
+    <!-- 欢迎卡片 - 仪表盘风格 -->
+    <div class="welcome-dashboard">
+      <div class="welcome-left">
+        <div class="welcome-main">欢迎您，{{ data.user.name }}</div>
+        <div class="welcome-subtitle">荆州学院 · {{ getChineseDate() }}</div>
+        <div class="welcome-greeting">{{ getProfessionalGreeting() }}</div>
       </div>
-      <div class="welcome-info">
-        <h2>欢迎您，{{ data.user.name }}</h2>
-        <p>{{ getCurrentTime() }} · {{ getWeekDay() }} · {{ getGreeting() }}</p>
+      <div class="welcome-right">
+        <div class="flip-clock">
+          <div class="flip-unit">
+            <div class="flip-digit" :data-value="data.hours">
+              <div class="flip-card" :class="{ flipping: data.hoursFlipping }">
+                <div class="flip-card-front">{{ data.displayHours }}</div>
+                <div class="flip-card-back">{{ data.nextHours }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-separator">:</div>
+          <div class="flip-unit">
+            <div class="flip-digit" :data-value="data.minutes">
+              <div class="flip-card" :class="{ flipping: data.minutesFlipping }">
+                <div class="flip-card-front">{{ data.displayMinutes }}</div>
+                <div class="flip-card-back">{{ data.nextMinutes }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-separator">:</div>
+          <div class="flip-unit">
+            <div class="flip-digit" :data-value="data.seconds">
+              <div class="flip-card" :class="{ flipping: data.secondsFlipping }">
+                <div class="flip-card-front">{{ data.displaySeconds }}</div>
+                <div class="flip-card-back">{{ data.nextSeconds }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -82,7 +110,7 @@ import { ElMessage } from "element-plus";
 import * as echarts from 'echarts';
 import { 
   User, Bell, PieChart, Histogram, Refresh, 
-  Collection, Reading, School, Medal 
+  Collection, Reading, School, Medal, Clock
 } from '@element-plus/icons-vue';
 
 // 定义图表实例引用
@@ -97,6 +125,19 @@ const data = reactive({
   noticeData: [],
   collegeStats: [],
   courseStats: [],
+  currentTime: '',
+  hours: 0,
+  minutes: 0,
+  seconds: 0,
+  displayHours: '00',
+  displayMinutes: '00',
+  displaySeconds: '00',
+  nextHours: '00',
+  nextMinutes: '00',
+  nextSeconds: '00',
+  hoursFlipping: false,
+  minutesFlipping: false,
+  secondsFlipping: false,
   statsCards: [
     { title: '学生总数', value: 0, icon: 'User', bgColor: '#1e88e5' },
     { title: '课程总数', value: 0, icon: 'Reading', bgColor: '#43a047' },
@@ -118,6 +159,29 @@ const getGreeting = () => {
   return '夜深了，注意休息';
 };
 
+// 获取中文日期格式
+const getChineseDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const weekday = weekdays[now.getDay()];
+  return `${year}年${month}月${day}日 ${weekday}`;
+};
+
+// 获取专业问候语
+const getProfessionalGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 9) return '早上好，祝您今天工作顺利';
+  if (hour < 12) return '上午好，祝您今天工作顺利';
+  if (hour < 14) return '中午好，注意休息';
+  if (hour < 17) return '下午好，祝您今天工作顺利';
+  if (hour < 19) return '傍晚好，辛苦了';
+  if (hour < 22) return '晚上好，注意休息';
+  return '夜深了，注意休息';
+};
+
 // 获取当前时间
 const getCurrentTime = () => {
   const now = new Date();
@@ -132,6 +196,51 @@ const getWeekDay = () => {
   const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
   return weekdays[new Date().getDay()];
 };
+
+// 更新翻页时钟
+const updateFlipClock = () => {
+  const now = new Date();
+  const newHours = now.getHours();
+  const newMinutes = now.getMinutes();
+  const newSeconds = now.getSeconds();
+  
+  // 格式化显示
+  data.displayHours = String(data.hours).padStart(2, '0');
+  data.displayMinutes = String(data.minutes).padStart(2, '0');
+  data.displaySeconds = String(data.seconds).padStart(2, '0');
+  
+  data.nextHours = String(newHours).padStart(2, '0');
+  data.nextMinutes = String(newMinutes).padStart(2, '0');
+  data.nextSeconds = String(newSeconds).padStart(2, '0');
+  
+  // 检查是否需要翻页
+  if (newHours !== data.hours) {
+    data.hoursFlipping = true;
+    setTimeout(() => {
+      data.hoursFlipping = false;
+      data.hours = newHours;
+    }, 600);
+  }
+  
+  if (newMinutes !== data.minutes) {
+    data.minutesFlipping = true;
+    setTimeout(() => {
+      data.minutesFlipping = false;
+      data.minutes = newMinutes;
+    }, 600);
+  }
+  
+  if (newSeconds !== data.seconds) {
+    data.secondsFlipping = true;
+    setTimeout(() => {
+      data.secondsFlipping = false;
+      data.seconds = newSeconds;
+    }, 600);
+  }
+};
+
+// 定时器引用
+let flipTimer = null;
 
 // 获取时间线颜色
 const getTimelineColor = (index) => {
@@ -342,6 +451,10 @@ const loadStatsCardData = () => {
 
 // 生命周期钩子：挂载后
 onMounted(() => {
+  // 初始化翻页时钟
+  updateFlipClock();
+  flipTimer = setInterval(updateFlipClock, 1000);
+  
   loadNotice();
   loadCollegeStats();
   loadCourseStats();
@@ -350,6 +463,10 @@ onMounted(() => {
 
 // 生命周期钩子：卸载前
 onBeforeUnmount(() => {
+  if (flipTimer) {
+    clearInterval(flipTimer); // 清理翻页时钟定时器
+  }
+  
   if (collegeChart) {
     collegeChart.dispose();
   }
@@ -382,43 +499,123 @@ onBeforeUnmount(() => {
   display: none;
 }
 
-/* 欢迎卡片样式 */
-.welcome-card {
-  background: linear-gradient(135deg, #1976d2, #64b5f6);
-  border-radius: 12px;
-  padding: 20px;
+/* 欢迎卡片 - 仪表盘风格 */
+.welcome-dashboard {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.welcome-left {
+  flex: 1;
+}
+
+.welcome-main {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.welcome-greeting {
+  font-size: 14px;
+  color: #999;
+}
+
+.welcome-right {
   display: flex;
   align-items: center;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.welcome-avatar {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-right: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.7);
-  background-color: white;
+/* 翻页时钟样式 */
+.flip-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2c3e50;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.welcome-avatar img {
+.flip-unit {
+  position: relative;
+  width: 40px;
+  height: 60px;
+  perspective: 200px;
+}
+
+.flip-digit {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  position: relative;
+  transform-style: preserve-3d;
 }
 
-.welcome-info h2 {
-  margin: 0;
+.flip-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  color: white;
+  background: #34495e;
+  border-radius: 4px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.flip-card-back {
+  transform: rotateX(180deg);
+}
+
+.flip-card.flipping {
+  animation: flip 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(-90deg);
+  }
+  100% {
+    transform: rotateX(-180deg);
+  }
+}
+
+.flip-separator {
   font-size: 24px;
-  margin-bottom: 5px;
-}
-
-.welcome-info p {
-  margin: 0;
-  opacity: 0.85;
-  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  margin: 0 4px;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
 }
 
 /* 统计卡片样式 */
