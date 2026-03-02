@@ -1,13 +1,13 @@
 <template>
   <div>
     <!-- 头部导航栏 -->
-    <div style="height: 60px; background: linear-gradient(90deg, #1565c0, #1976d2); display: flex; align-items: center; border-bottom: 1px solid #0d47a1; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+    <div style="height: 60px; background: linear-gradient(90deg, #2f6fb3, #3982cf); display: flex; align-items: center; border-bottom: 1px solid #0d47a1; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
       <div style="flex: 1">
         <div style="padding-left: 20px; display: flex; align-items: center">
           <div class="logo-container">
-            <el-icon class="logo-icon"><School /></el-icon>
+            <img src="@/assets/icons/logo.png" alt="校徽" class="university-logo" />
           </div>
-          <div style="font-weight: bold; font-size: 22px; margin-left: 10px; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">学生选课管理系统</div>
+          <div style="font-weight: bold; font-size: 22px; margin-left: 10px; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">高校选课系统与成绩查询系统</div>
         </div>
       </div>
       <div style="width: fit-content; padding-right: 20px; display: flex; align-items: center;">
@@ -164,14 +164,20 @@ const logout = () => {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background-color: white;
+  /* background-color: white; */
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  /* box-shadow: 0 2px 8px rgba(0,0,0,0.2); */
 }
 
 .logo-icon {
   font-size: 24px;
   color: #1565c0;
+}
+
+.university-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .avatar-box {
