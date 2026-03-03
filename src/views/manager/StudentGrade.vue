@@ -14,10 +14,12 @@
           class="search-input"
           @change="loadGrades"
         >
-          <el-option label="2024-2025-1" value="2024-2025-1" />
+          <el-option label="2025-2026-2" value="2025-2026-2" />
+          <el-option label="2025-2026-1" value="2025-2026-1" />
           <el-option label="2024-2025-2" value="2024-2025-2" />
-          <el-option label="2023-2024-1" value="2023-2024-1" />
+          <el-option label="2024-2025-1" value="2024-2025-1" />
           <el-option label="2023-2024-2" value="2023-2024-2" />
+          <el-option label="2023-2024-1" value="2023-2024-1" />
         </el-select>
         <div class="search-buttons">
           <el-button type="primary" @click="loadGrades">
